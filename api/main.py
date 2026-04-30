@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import joblib
 import pandas as pd
+import os 
 
 app = FastAPI()
 
@@ -19,7 +20,8 @@ def home():
     return {"message": "API is running 🚀"}
 
 # 🔥 ADD THIS PART BELOW
-model = joblib.load("models/student_model.pkl")
+model_path = os.path.join("models", "student_model.pkl")
+model = joblib.load(model_path)
 
 @app.post("/predict")
 def predict(data: dict):

@@ -48,6 +48,17 @@ Frontend
 cd frontend
 npm run dev
 
+
+# 🧾 6️⃣ GIT COMMANDS 
+
+```bash
+git init
+git add .
+git commit -m "Initial commit - Student Performance Prediction System"
+git branch -M main
+git remote add origin https://github.com/<your-username>/student-performance-prediction-system.git
+git push -u origin main
+
 🌍 Deployment
 Backend: Render
 Frontend: Vercel

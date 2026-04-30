@@ -3,4 +3,3 @@ pycache/
 .env
 node_modules/
 .next/
-models/

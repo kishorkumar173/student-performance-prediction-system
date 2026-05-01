@@ -5,53 +5,71 @@ np.random.seed(42)
 
 n = 10000  # number of students
 
-# Base (UCI-like features)
+# -----------------------------
+# BASE FEATURES
+# -----------------------------
 data = pd.DataFrame({
     "studytime": np.random.randint(1, 5, n),
     "failures": np.random.randint(0, 4, n),
     "absences": np.random.randint(0, 30, n),
-    "G1": np.random.randint(0, 20, n),
-    "G2": np.random.randint(0, 20, n),
+    "G1": np.random.randint(5, 20, n),   # avoid too many zeros
+    "G2": np.random.randint(5, 20, n),
 })
 
-# 🎯 Attendance (inverse of absences)
-data["attendance_pct"] = 100 - (data["absences"] * np.random.uniform(1.5, 3.0, n))
-data["attendance_pct"] = data["attendance_pct"].clip(40, 100)
+# -----------------------------
+# ATTENDANCE
+# -----------------------------
+data["attendance_pct"] = 100 - (data["absences"] * np.random.uniform(1.5, 2.5, n))
+data["attendance_pct"] = data["attendance_pct"].clip(50, 100)
 
-# 🎯 Study hours per week
-data["study_hours"] = data["studytime"] * np.random.randint(2, 5, n)
+# -----------------------------
+# STUDY HOURS
+# -----------------------------
+data["study_hours"] = data["studytime"] * np.random.randint(2, 6, n)
 
-# 🎯 Engagement score
+# -----------------------------
+# ENGAGEMENT SCORE
+# -----------------------------
 data["engagement_score"] = (
-    data["studytime"] * 2 +
-    (data["attendance_pct"] / 10) +
-    np.random.randint(1, 10, n)
+    data["studytime"] * 3 +
+    (data["attendance_pct"] / 8) +
+    np.random.randint(2, 10, n)
 )
 
-# 🎯 Final Score (realistic weighted formula)
+# -----------------------------
+# FINAL SCORE (STRONG LOGIC)
+# -----------------------------
 data["final_score"] = (
-    data["G1"] * 0.3 +
-    data["G2"] * 0.3 +
-    data["attendance_pct"] * 0.2 +
+    data["G1"] * 0.35 +
+    data["G2"] * 0.35 +
+    data["attendance_pct"] * 0.15 +
     data["study_hours"] * 0.1 +
-    data["engagement_score"] * 0.1
+    data["engagement_score"] * 0.05
 )
 
-# Normalize score to 100
+# Normalize to 100
 data["final_score"] = (data["final_score"] / data["final_score"].max()) * 100
 
-# 🔥 ADD NOISE (important for realism)
-data["final_score"] += np.random.normal(0, 8, n)
-
-# Clip again after noise
+# -----------------------------
+# ADD REALISTIC NOISE
+# -----------------------------
+data["final_score"] += np.random.normal(0, 5, n)
 data["final_score"] = data["final_score"].clip(0, 100)
 
-# 🔥 DYNAMIC THRESHOLD (balances dataset)
-threshold = data["final_score"].quantile(0.6)
+# -----------------------------
+# ADD FAILURE PENALTY (IMPORTANT)
+# -----------------------------
+data["final_score"] -= data["failures"] * 5
 
+# -----------------------------
+# TARGET (BALANCED)
+# -----------------------------
+threshold = data["final_score"].median()   # better than quantile(0.6)
 data["pass"] = (data["final_score"] >= threshold).astype(int)
 
-# 🎯 Grade Bands
+# -----------------------------
+# GRADE SYSTEM
+# -----------------------------
 def grade(score):
     if score >= 80:
         return "A"
@@ -64,7 +82,9 @@ def grade(score):
 
 data["grade"] = data["final_score"].apply(grade)
 
-# Save dataset
+# -----------------------------
+# SAVE DATASET
+# -----------------------------
 data.to_csv("data/student_performance_final.csv", index=False)
 
 print("✅ Dataset created successfully!")

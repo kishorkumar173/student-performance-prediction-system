@@ -1,34 +1,38 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import joblib
 import pandas as pd
-import os 
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+model = joblib.load("models/student_model.pkl")
 
-# Home route
 @app.get("/")
 def home():
     return {"message": "API is running 🚀"}
 
-# 🔥 ADD THIS PART BELOW
-model_path = os.path.join("models", "student_model.pkl")
-model = joblib.load(model_path)
-
 @app.post("/predict")
 def predict(data: dict):
-    df = pd.DataFrame([data])
-    pred = model.predict(df)[0]
+    try:
+        df = pd.DataFrame([data])
 
-    return {
-        "prediction": int(pred),
-        "result": "PASS" if pred == 1 else "FAIL"
-    }
+        # ✅ FIX COLUMN ORDER (VERY IMPORTANT)
+        df = df[[
+            "studytime",
+            "failures",
+            "absences",
+            "G1",
+            "G2",
+            "attendance_pct",
+            "study_hours",
+            "engagement_score"
+        ]]
+
+        pred = model.predict(df)[0]
+
+        return {
+            "prediction": int(pred),
+            "result": "PASS" if pred == 1 else "FAIL"
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
